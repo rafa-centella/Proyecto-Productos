@@ -153,7 +153,7 @@ async def order(order: Order, user: User = Depends(current_user)):
 ### Funciones de modificación con autenticación:
 
 @router.put("/user")
-async def user(user: User = Depends(current_user)):
+async def user(user: User, users: User = Depends(current_user)):
 
     
     user_dict = dict(user)
@@ -202,7 +202,7 @@ async def product(product: Product, user: User = Depends(current_user)):
         except:
             return {"Error": "Stock could not be updated."}
 
-        return Product(search_product("_id", ObjectId(product.id)))
+        return search_product("_id", ObjectId(product.id))
     
     else:
 
