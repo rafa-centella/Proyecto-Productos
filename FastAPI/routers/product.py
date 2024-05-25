@@ -22,7 +22,7 @@ async def products():
 
 ### Endpoint Buscar Producto Por ID ###
 
-@router.get("/{id}") ##path
+@router.get("/{id}") 
 async def product(id: str):
     return search_product("_id", ObjectId(id))
 
@@ -48,7 +48,7 @@ async def products(ordenar: str):
 ### Endpoint Lista Productos Por Categoria ###
 
 
-@router.get("/buscar/categoria/{categoria}") ##falta acabar
+@router.get("/buscar/categoria/{categoria}") 
 async def product(categoria: str):
 
     

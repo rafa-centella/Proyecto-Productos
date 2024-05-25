@@ -7,8 +7,10 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from db.models.user import User, Userdb
 from db.models.product import Product
+from db.models.order import Order
 from db.schemas.user import user_schema
 from db.schemas.product import product_schema
+from db.schemas.order import order_schema
 from db.client import db_client
 from bson import ObjectId
 from pydantic import BaseModel
@@ -127,6 +129,25 @@ async def user(product: Product, user: User = Depends(current_user)):
         return {"Message": "Invalid credentials."}
 
 
+@router.post("/order", status_code=status.HTTP_201_CREATED)
+async def order(order: Order, user: User = Depends(current_user)):
+    
+    if type(search_order("cod_order", order.cod_order)) == Order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="This order is already registered.")
+    
+    
+    order_dict = dict(order)
+    del order_dict["id"]
+
+    id = db_client.orders.insert_one(order_dict).inserted_id
+
+    new_order = db_client.orders.find_one({"_id": id})
+
+    return Order(**order_schema(new_order))
+ 
+
+
 
 
 ### Funciones de modificación con autenticación:
@@ -145,7 +166,7 @@ async def user(user: User = Depends(current_user)):
     except:
         return {"Error": "It is not possible to update the user."}
 
-    return User(search_db("_id", ObjectId(user.id)))
+    return search_db("_id", ObjectId(user.id))
     
 
 @router.put("/product")
@@ -186,6 +207,23 @@ async def product(product: Product, user: User = Depends(current_user)):
     else:
 
         return {"Message": "Invalid credentials."}
+
+
+@router.put("/order")
+async def order(order: Order, user: User = Depends(current_user)):
+
+    
+    order_dict = dict(order)
+    del order_dict["id"]
+
+    try:
+        db_client.orders.find_one_and_replace(
+            {"_id": ObjectId(order.id)}, order_dict)
+
+    except:
+        return {"Error": "It is not possible to update the order."}
+
+    return search_order("_id", ObjectId(order.id))
 
 
 
@@ -236,6 +274,16 @@ async def product(categoria: str, user: User = Depends(current_user)):
         return {"Message": "Invalid credentials."}
 
 
+@router.delete("/order/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def user(id: str, user: User = Depends(current_user)):
+
+    found = db_client.orders.find_one_and_delete({"_id": ObjectId(id)})
+
+
+    if not found:
+        return {"Error": "The order could not be deleted."}
+
+
 
 
 ### Funciones adicionales:
@@ -270,3 +318,11 @@ def search_product(field: str, key):
         return Product(**product_schema(product))
     except:
         return {"Error": "Product not found."}
+
+def search_order(field: str, key):
+
+    try:
+        order = db_client.orders.find_one({field: key})
+        return Order(**order_schema(order))
+    except:
+        return {"Error": "Order not found."}

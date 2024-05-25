@@ -1,6 +1,6 @@
 # Importamos lo que vamos a necesitar.
 from fastapi import FastAPI
-from routers import login, users, product
+from routers import login, users, product, orders
 
 # Se define variable que almacenara el FastAPI.
 app = FastAPI()
@@ -9,6 +9,7 @@ app = FastAPI()
 app.include_router(login.router)
 app.include_router(users.router)
 app.include_router(product.router)
+app.include_router(orders.router)
 
 # EndPoint de entrada en la API.
 @app.get("/")
