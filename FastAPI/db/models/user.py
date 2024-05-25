@@ -1,9 +1,11 @@
 from pydantic import BaseModel
-from typing import Optional
 
 class User(BaseModel):
-    _id: Optional[str]
+    id: str | None
     username: str
     password: str
     email: str
     is_admin: bool
+
+class Userdb(User):
+    password: str
